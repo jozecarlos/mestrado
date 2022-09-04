@@ -2,7 +2,6 @@ def merge(elements, left, right):
     b = c = d = 0
 
     while b < len(left) and c < len(right):
-
         if left[b] < right[c]:
             elements[d] = left[b]
             b += 1
