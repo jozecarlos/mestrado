@@ -18,8 +18,10 @@ class DMC:
             distance += (row1[i] - row2[i]) ** 2
         return sqrt(distance)
 
-    def __get_centroid(self, data):
-        c = [.0, .0, .0, .0, data[0][-1]]
+    def __get_centroid(self, number_of_attr, data):
+        #c = [.0, .0, .0, .0, data[0][-1]]
+        c = [0 for _ in range(number_of_attr)]
+        c.append(data[0][-1])
         length = len(c) - 1
         for y in range(len(data)):
             for x in range(length):
@@ -68,7 +70,7 @@ class DMC:
         centroids = [[]] * len(listClasses)
 
         for i in range(len(listClasses)):
-            centroids[i] = self.__get_centroid(listClasses[i])
+            centroids[i] = self.__get_centroid((len(self.trainingSet[0]) - 1), listClasses[i])
 
         return centroids
 
