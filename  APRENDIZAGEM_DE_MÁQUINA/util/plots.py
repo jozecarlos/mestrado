@@ -2,6 +2,7 @@ from sklearn import metrics
 import matplotlib.pyplot as plt
 import numpy as np
 import itertools
+from dataset import Dataset
 
 
 def p_confusion_matrix(cm, classes,
@@ -33,28 +34,101 @@ def p_confusion_matrix(cm, classes,
     plt.show()
 
 
-def plot_surface_boundary(trainSet, predict, feature_names, target_names):
-    print("Surface Boundary")
-    plot_colors = "ryb"
-    plot_step = 0.02
-    n_classes = 2
-    x_min, x_max = trainSet[:, 0].min() - 1, trainSet[:, 0].max() + 1
-    y_min, y_max = trainSet[:, 1].min() - 1, trainSet[:, 1].max() + 1
-    xx, yy = np.meshgrid(np.arange(x_min, x_max, plot_step), np.arange(y_min, y_max, plot_step))
-    plt.tight_layout(h_pad=0.5, w_pad=0.5, pad=2.5)
+def get_classes(data, class_index, unique=None):
+    labels = []
 
-    Z = predict.reshape(xx.shape)
-    cs = plt.contourf(xx, yy, Z, cmap=plt.cm.RdYlBu)
+    for x in range(len(data)):
+        labels.append(data[x][class_index])
 
-    plt.xlabel(feature_names[0])
-    plt.ylabel(feature_names[1])
+    if unique is None:
+        return labels
+    elif unique:
+        return Collection.unique(labels)
+    else:
+        return labels
 
-    # Plot the training points
-    for i, color in zip(range(n_classes), plot_colors):
-        idx = np.where(predict == i)
-        plt.scatter(trainSet[idx, 0], trainSet[idx, 1], c=color, label=target_names[i], cmap=plt.cm.RdYlBu, edgecolor='black', s=15)
 
-    plt.suptitle("Decision surface of a decision tree using paired features")
-    plt.legend(loc='lower right', borderpad=0, handletextpad=0)
-    plt.axis("tight")
+def test():
+    import numpy as np
+    from sklearn.datasets import make_blobs
+    from sklearn.linear_model import LogisticRegression
+
+    # generate dataset
+    X, y = make_blobs(n_samples=1000, centers=2, n_features=2, random_state=1, cluster_std=3)
+    # define bounds of the domain
+    min1, max1 = X[:, 0].min()-1, X[:, 0].max()+1
+    min2, max2 = X[:, 1].min()-1, X[:, 1].max()+1
+    # define the x and y scale
+    x1grid = np.arange(min1, max1, 0.1)
+    x2grid = np.arange(min2, max2, 0.1)
+    # create all of the lines and rows of the grid
+    xx, yy = np.meshgrid(x1grid, x2grid)
+    # flatten each grid to a vector
+    r1, r2 = xx.flatten(), yy.flatten()
+    r1, r2 = r1.reshape((len(r1), 1)), r2.reshape((len(r2), 1))
+    # horizontal stack vectors to create x1,x2 input for the model
+    grid = np.hstack((r1,r2))
+    # define the model
+    model = LogisticRegression()
+    # fit the model
+    model.fit(X, y)
+    # make predictions for the grid
+    yhat = model.predict(grid)
+    # reshape the predictions back into a grid
+    zz = yhat.reshape(xx.shape)
+    # plot the grid of x, y and z values as a surface
+    plt.contourf(xx, yy, zz, cmap='Paired')
+    # create scatter plot for samples from each class
+    for class_value in range(2):
+        # get row indexes for samples with this class
+        row_ix = np.where(y == class_value)
+        # create scatter of these samples
+        plt.scatter(X[row_ix, 0], X[row_ix, 1], cmap='Paired')
+
     plt.show()
+
+def plot_surface_boundary(dataset, model, idx_class):
+    print("Surface Boundary")
+
+
+    arr = np.array(dataset)
+    D = arr[:, 0:idx_class]
+    X1 = D[:,0:2]
+    X = X1.astype(np.float)
+    y1 = arr[:, idx_class]
+
+    #from sklearn.datasets import make_blobs
+    #X, y = make_blobs(n_samples=1000, centers=2, n_features=2, random_state=1, cluster_std=3)
+
+    # define bounds of the domain
+    min1, max1 = X[:, 0].min() - 1, X[:, 0].max() + 1
+    min2, max2 = X[:, 1].min() - 1, X[:, 1].max() + 1
+    # define the x and y scale
+    x1grid = np.arange(min1, max1, 0.1)
+    x2grid = np.arange(min2, max2, 0.1)
+    # create all of the lines and rows of the grid
+    xx, yy = np.meshgrid(x1grid, x2grid)
+    # flatten each grid to a vector
+    r1, r2 = xx.flatten(), yy.flatten()
+    r1, r2 = r1.reshape((len(r1), 1)), r2.reshape((len(r2), 1))
+    # horizontal stack vectors to create x1,x2 input for the model
+    grid = np.hstack((r1, r2))
+    # define the model
+    #model = LogisticRegression()
+    #neighbors = model.train(trainingSet, testSet[x], k)
+    #result = model.predict(neighbors)
+    #predictions.append(result)
+    # fit the model
+    model.fit(X, y)
+    # make predictions for the grid
+    yhat = model.predict(grid)
+    # reshape the predictions back into a grid
+    zz = yhat.reshape(xx.shape)
+    # plot the grid of x, y and z values as a surface
+    plt.contourf(xx, yy, zz, cmap='Paired')
+    # create scatter plot for samples from each class
+    for class_value in range(2):
+        # get row indexes for samples with this class
+        row_ix = np.where(y == class_value)
+        # create scatter of these samples
+        plt.scatter(X[row_ix, 0], X[row_ix, 1], cmap='Paired')

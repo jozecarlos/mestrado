@@ -17,7 +17,7 @@ class Dataset:
     @staticmethod
     def split(dataset, split, trainingSet=[], testSet=[]):
         for x in range(len(dataset) - 1):
-            for y in range(4):
+            for y in range((len(dataset[0]) -1)):
                 dataset[x][y] = float(dataset[x][y])
             if random.random() < split:
                 trainingSet.append(dataset[x])
