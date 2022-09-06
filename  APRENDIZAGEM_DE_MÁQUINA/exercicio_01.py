@@ -17,8 +17,7 @@ from processing import minmax
 from processing import normalize
 from processing import categorical
 from plots import plot_surface_boundary
-from plots import p_confusion_matrix
-from plots import test
+from plots import plot_surface_boundary
 
 
 def get_classes(data, class_index, unique=None):
@@ -202,15 +201,15 @@ def process_coluna_data():
         dmc_interations.append(NearestCentroid(trainingSet, testSet, 6))
 
     print_interactions(knn_interations, dmc_interations)
-
     print("Finished Vertebral Column Process")
+
+    return dataset
 
 
 def process_iris_data():
     print("Iris DataSet Process")
 
     dataset = prepare_dataset('./datasets/iris_dataset.csv', 4)
-    #plot_surface_boundary(dataset, [], 4)
 
     knn_interations = []
     dmc_interations = []
@@ -226,6 +225,8 @@ def process_iris_data():
 
     print_interactions(knn_interations, dmc_interations)
     print("Finished Iris Data Process")
+
+    return dataset
 
 
 def process_artificial_data():
@@ -261,16 +262,27 @@ def process_artificial_data():
     print_interactions(knn_interations, dmc_interations)
     print("Finished Artificial Process")
 
+    return dataset
+
 
 
 if __name__ == "__main__":
-    #test()
-    process_iris_data()
+    dataset_iris = process_iris_data()
     print('-------------------')
     print('-------------------')
     print('-------------------')
-    process_coluna_data()
+    dataset_vertebral = process_coluna_data()
     print('-------------------')
     print('-------------------')
     print('-------------------')
-    process_artificial_data()
+    datset_a1 = process_artificial_data()
+    print('-------------------')
+    print('-------------------')
+    print('-------------------')
+    print('Decision Boundary')
+    plot_surface_boundary(dataset_iris, 'knn', 4)
+    plot_surface_boundary(dataset_iris, 'dmc', 4)
+    plot_surface_boundary(dataset_vertebral, 'knn', 6)
+    plot_surface_boundary(dataset_vertebral, 'dmc', 6)
+    plot_surface_boundary(datset_a1, 'knn', 2)
+    plot_surface_boundary(datset_a1, 'dmc', 2)

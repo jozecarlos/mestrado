@@ -1,4 +1,6 @@
-from sklearn import metrics
+import random
+
+from sklearn import metrics, neighbors, __all__
 import matplotlib.pyplot as plt
 import numpy as np
 import itertools
@@ -34,101 +36,58 @@ def p_confusion_matrix(cm, classes,
     plt.show()
 
 
-def get_classes(data, class_index, unique=None):
-    labels = []
-
-    for x in range(len(data)):
-        labels.append(data[x][class_index])
-
-    if unique is None:
-        return labels
-    elif unique:
-        return Collection.unique(labels)
-    else:
-        return labels
-
-
-def test():
+def plot_surface_boundary(dataset, type, idx_class):
     import numpy as np
-    from sklearn.datasets import make_blobs
-    from sklearn.linear_model import LogisticRegression
+    import pandas as pd
+    from sklearn import preprocessing
 
-    # generate dataset
-    X, y = make_blobs(n_samples=1000, centers=2, n_features=2, random_state=1, cluster_std=3)
-    # define bounds of the domain
-    min1, max1 = X[:, 0].min()-1, X[:, 0].max()+1
-    min2, max2 = X[:, 1].min()-1, X[:, 1].max()+1
-    # define the x and y scale
+    arr = np.array(dataset)
+
+    df = pd.DataFrame(arr)
+    df_new = df.iloc[:, [0, 1]]
+    print(df_new.to_latex())
+
+    D = arr[:, 0:idx_class]
+    X1 = D[:, 0:2]
+    X = X1.astype(np.float)
+
+    le = preprocessing.LabelEncoder()
+    y1 = arr[:, idx_class]
+    le.fit(y1)
+    y = le.transform(y1)
+
+    # definir limites do domínio
+    min1, max1 = X[:, 0].min() - 1, X[:, 0].max() + 1
+    min2, max2 = X[:, 1].min() - 1, X[:, 1].max() + 1
+    # definir a escala x e y
     x1grid = np.arange(min1, max1, 0.1)
     x2grid = np.arange(min2, max2, 0.1)
     # create all of the lines and rows of the grid
     xx, yy = np.meshgrid(x1grid, x2grid)
-    # flatten each grid to a vector
+    # achatar cada grade para um vetor
     r1, r2 = xx.flatten(), yy.flatten()
     r1, r2 = r1.reshape((len(r1), 1)), r2.reshape((len(r2), 1))
-    # horizontal stack vectors to create x1,x2 input for the model
-    grid = np.hstack((r1,r2))
-    # define the model
-    model = LogisticRegression()
-    # fit the model
+    #
+    # vetores de pilha horizontal para criar entrada x1,x2 para o modelo
+    grid = np.hstack((r1, r2))
+    # definir o modelo
+    model = neighbors.KNeighborsClassifier(4, weights='uniform')
+    if type == 'dmc':
+        model = neighbors.NearestCentroid()
+    # treinar o modelo
     model.fit(X, y)
-    # make predictions for the grid
+    # fazer as predições da grade
     yhat = model.predict(grid)
-    # reshape the predictions back into a grid
+    # remodelar as previsões de volta em uma grade
     zz = yhat.reshape(xx.shape)
-    # plot the grid of x, y and z values as a surface
+    # plotar a grade de valores x, y e z como uma superfície
     plt.contourf(xx, yy, zz, cmap='Paired')
-    # create scatter plot for samples from each class
+    #
+    # crie um gráfico de dispersão para amostras de cada classe
     for class_value in range(2):
-        # get row indexes for samples with this class
+        # obter índices de linha para amostras com esta classe
         row_ix = np.where(y == class_value)
-        # create scatter of these samples
+        # criar dispersão dessas amostras
         plt.scatter(X[row_ix, 0], X[row_ix, 1], cmap='Paired')
 
     plt.show()
-
-def plot_surface_boundary(dataset, model, idx_class):
-    print("Surface Boundary")
-
-
-    arr = np.array(dataset)
-    D = arr[:, 0:idx_class]
-    X1 = D[:,0:2]
-    X = X1.astype(np.float)
-    y1 = arr[:, idx_class]
-
-    #from sklearn.datasets import make_blobs
-    #X, y = make_blobs(n_samples=1000, centers=2, n_features=2, random_state=1, cluster_std=3)
-
-    # define bounds of the domain
-    min1, max1 = X[:, 0].min() - 1, X[:, 0].max() + 1
-    min2, max2 = X[:, 1].min() - 1, X[:, 1].max() + 1
-    # define the x and y scale
-    x1grid = np.arange(min1, max1, 0.1)
-    x2grid = np.arange(min2, max2, 0.1)
-    # create all of the lines and rows of the grid
-    xx, yy = np.meshgrid(x1grid, x2grid)
-    # flatten each grid to a vector
-    r1, r2 = xx.flatten(), yy.flatten()
-    r1, r2 = r1.reshape((len(r1), 1)), r2.reshape((len(r2), 1))
-    # horizontal stack vectors to create x1,x2 input for the model
-    grid = np.hstack((r1, r2))
-    # define the model
-    #model = LogisticRegression()
-    #neighbors = model.train(trainingSet, testSet[x], k)
-    #result = model.predict(neighbors)
-    #predictions.append(result)
-    # fit the model
-    model.fit(X, y)
-    # make predictions for the grid
-    yhat = model.predict(grid)
-    # reshape the predictions back into a grid
-    zz = yhat.reshape(xx.shape)
-    # plot the grid of x, y and z values as a surface
-    plt.contourf(xx, yy, zz, cmap='Paired')
-    # create scatter plot for samples from each class
-    for class_value in range(2):
-        # get row indexes for samples with this class
-        row_ix = np.where(y == class_value)
-        # create scatter of these samples
-        plt.scatter(X[row_ix, 0], X[row_ix, 1], cmap='Paired')
