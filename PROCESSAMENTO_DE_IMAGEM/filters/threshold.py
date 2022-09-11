@@ -7,12 +7,12 @@ def apply(config, limiar):
     limiar_max = np.max(image)
     new_image = np.zeros(image.shape)
 
-    for j in range(0, config.image.row):
-        for k in range(0, config.image.col):
-            if image[j, k] > limiar:
-                new_image[j, k] = limiar_max
+    for row in range(0, config.image.row):
+        for col in range(0, config.image.col):
+            if image[row, col] > limiar:
+                new_image[row, col] = limiar_max
             else:
-                new_image[j, k] = limiar_min
+                new_image[row, col] = limiar_min
 
     return np.uint8(new_image)
 
