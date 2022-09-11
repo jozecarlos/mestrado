@@ -26,8 +26,8 @@ def filter(config):
     new_image = np.zeros(config.image.src.shape)
     count = 0
 
-    for image_row in range((0), config.image.row):
-        for image_col in range((0), config.image.col):
+    for image_row in range(0, config.image.row):
+        for image_col in range(0, config.image.col):
             for kernel_row in range(0, config.kernel_size):
                 for kernel_col in range(0, config.kernel_size):
                     count = (C[image_row + kernel_row, image_col + kernel_col] * kernel[kernel_row, kernel_col]) + count
