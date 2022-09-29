@@ -3,11 +3,13 @@ import random
 import sys
 
 import numpy as np
+from matplotlib import pyplot as plt
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 from classifier import k_neighbors_classifier
 from classifier import dm_centroid_classifier
+from classifier import k_means_classifier
 from metrics import Metrics
 from dataset import Dataset
 from label_encoder import LabelEncoder
@@ -16,7 +18,7 @@ from processing import str_column_to_float
 from processing import minmax
 from processing import normalize
 from processing import categorical
-from plots import plot_surface_boundary
+from plots import p_confusion_matrix
 from plots import plot_surface_boundary
 
 
@@ -61,6 +63,7 @@ def __get_confusion_matrix(test_set, result):
     labeled_predict = categorical(result, Collection.unique(test_set))
 
     return Metrics.confusion_matrix(labeled_classes, labeled_predict, False)
+
 
 def __show_confusion_matrix(test_set, result):
     labeled_classes = categorical(test_set, Collection.unique(test_set))
@@ -110,6 +113,53 @@ def NearestCentroid(trainingSet, testSet, idx_class):
     return interaction
 
 
+def Kmeans(path_dataset, idx_class, array_data):
+    if path_dataset is None:
+        dataset = array_data
+    else:
+        dataset = prepare_dataset(path_dataset, idx_class)
+    classes = get_classes(dataset, idx_class, unique=True)
+    dataset_shuffled = Dataset.shuffle_row(dataset)
+    classes_labeled = LabelEncoder.categorical(get_classes(dataset_shuffled, idx_class), classes)
+    Dataset.remove_column(dataset_shuffled, idx_class)
+    dataset_np = np.array(dataset_shuffled)
+
+    clf = k_means_classifier.KMeans(5)
+
+    colors = 10 * ["g", "r", "c", "b", "k"]
+    predictions = []
+
+    clf.fit(dataset_np)
+
+    for centroid in clf.centroids:
+        plt.scatter(clf.centroids[centroid][0], clf.centroids[centroid][1],
+                    marker="o", color="k", s=150, linewidths=5)
+
+    for classification in clf.classifications:
+        color = colors[classification]
+        for featureset in clf.classifications[classification]:
+            plt.scatter(featureset[0], featureset[1], marker="x", color=color, s=150, linewidths=5)
+
+    correct = 0
+    for i in range(len(dataset_np)):
+
+        predict_me = np.array(dataset_np[i].astype(float))
+        predict_me = predict_me.reshape(-1, len(predict_me))
+        prediction = clf.predict(predict_me)
+        predictions.append(prediction)
+
+        if prediction == classes_labeled[i]:
+            correct += 1
+
+    print('Accuracy: ' + repr((correct / float(len(dataset_shuffled))) * 100.0) + '%')
+    print('STD: ' + repr(Metrics.stdev(predictions)))
+
+    # matrix = __get_confusion_matrix(classes_labeled, list(predictions))
+    # print(matrix)
+
+    plt.show()
+
+
 def prepare_dataset(file, idx_class):
     # Carregando o dataset
     dataset = Dataset.load(file)
@@ -142,22 +192,23 @@ def print_interactions(knn_interations, dmc_interations):
     acc_sum = 0
     std_sum = 0
 
-    for l in range(len(knn_interations)):
-        acc_values.append(knn_interations[l][3][0])
-        acc_sum = knn_interations[l][3][0] + acc_sum
-        std_sum = knn_interations[l][3][1] + std_sum
+    if len(knn_interations) > 0:
+        for l in range(len(knn_interations)):
+            acc_values.append(knn_interations[l][3][0])
+            acc_sum = knn_interations[l][3][0] + acc_sum
+            std_sum = knn_interations[l][3][1] + std_sum
 
-    print(acc_values)
-    max_index = acc_values.index(max(acc_values))
-    min_index = acc_values.index(min(acc_values))
-    print("Melhor Acurácia KNN: " + repr(knn_interations[max_index][3][0]))
-    print("Pior Acurácia DMC: " + repr(dmc_interations[min_index][3][0]))
-    print("Std Max: " + repr(knn_interations[max_index][3][1]))
-    print("Std Min: " + repr(knn_interations[min_index][3][1]))
-    print("Matrix Confusion KNN: " + repr(knn_interations[max_index][3][2]))
-    print("**********************************************")
-    print('Accuracy Mean KNN: ' + repr(acc_sum / 20) + '%')
-    print('Std Mean: ' + repr(std_sum / 20))
+        print(acc_values)
+        max_index = acc_values.index(max(acc_values))
+        min_index = acc_values.index(min(acc_values))
+        print("Melhor Acurácia KNN: " + repr(knn_interations[max_index][3][0]))
+        print("Pior Acurácia DMC: " + repr(dmc_interations[min_index][3][0]))
+        print("Std Max: " + repr(knn_interations[max_index][3][1]))
+        print("Std Min: " + repr(knn_interations[min_index][3][1]))
+        print("Matrix Confusion KNN: " + repr(knn_interations[max_index][3][2]))
+        print("**********************************************")
+        print('Accuracy Mean KNN: ' + repr(acc_sum / 20) + '%')
+        print('Std Mean: ' + repr(std_sum / 20))
 
     acc_values = []
     acc_sum = 0
@@ -166,22 +217,23 @@ def print_interactions(knn_interations, dmc_interations):
     print("-----------------------------------------------")
     print("-----------------------------------------------")
 
-    for p in range(len(dmc_interations)):
-        acc_values.append(dmc_interations[p][3][0])
-        acc_sum = dmc_interations[p][3][0] + acc_sum
-        std_sum = dmc_interations[p][3][1] + std_sum
+    if len(dmc_interations) > 0:
+        for p in range(len(dmc_interations)):
+            acc_values.append(dmc_interations[p][3][0])
+            acc_sum = dmc_interations[p][3][0] + acc_sum
+            std_sum = dmc_interations[p][3][1] + std_sum
 
-    print(acc_values)
-    max_index = acc_values.index(max(acc_values))
-    min_index = acc_values.index(min(acc_values))
-    print("Melhor Acurácia DMC: " + repr(dmc_interations[max_index][3][0]))
-    print("Pior Acurácia DMC: " + repr(dmc_interations[min_index][3][0]))
-    print("Std Max: " + repr(dmc_interations[max_index][3][1]))
-    print("Std Min: " + repr(dmc_interations[min_index][3][1]))
-    print("Matrix Confusion DMC: " + repr(dmc_interations[max_index][3][2]))
-    print("**********************************************")
-    print('Accuracy Mean DMC: ' + repr(acc_sum / 20) + '%')
-    print('Std Mean: ' + repr(std_sum / 20))
+        print(acc_values)
+        max_index = acc_values.index(max(acc_values))
+        min_index = acc_values.index(min(acc_values))
+        print("Melhor Acurácia DMC: " + repr(dmc_interations[max_index][3][0]))
+        print("Pior Acurácia DMC: " + repr(dmc_interations[min_index][3][0]))
+        print("Std Max: " + repr(dmc_interations[max_index][3][1]))
+        print("Std Min: " + repr(dmc_interations[min_index][3][1]))
+        print("Matrix Confusion DMC: " + repr(dmc_interations[max_index][3][2]))
+        print("**********************************************")
+        print('Accuracy Mean DMC: ' + repr(acc_sum / 20) + '%')
+        print('Std Mean: ' + repr(std_sum / 20))
 
 
 def process_coluna_data():
@@ -199,6 +251,7 @@ def process_coluna_data():
 
         knn_interations.append(KNearestNeighbors(trainingSet, testSet, 6, 8))
         dmc_interations.append(NearestCentroid(trainingSet, testSet, 6))
+        Kmeans('./datasets/output.csv', 6, None)
 
     print_interactions(knn_interations, dmc_interations)
     print("Finished Vertebral Column Process")
@@ -219,9 +272,10 @@ def process_iris_data():
         trainingSet = []
         testSet = []
         Dataset.split(shuffled_dataset, 0.66, trainingSet, testSet)
-
+        #
         knn_interations.append(KNearestNeighbors(trainingSet, testSet, 4))
         dmc_interations.append(NearestCentroid(trainingSet, testSet, 4))
+        Kmeans('./datasets/iris_dataset.csv', 4, None)
 
     print_interactions(knn_interations, dmc_interations)
     print("Finished Iris Data Process")
@@ -238,7 +292,7 @@ def process_artificial_data():
     dataset = []
     classes = ['Terraqueo', 'Marciano', 'Jupiteriano']
     style.use("fivethirtyeight")
-    X, y = make_blobs(n_samples = 100, centers = 3,cluster_std = 1, n_features = 2)
+    X, y = make_blobs(n_samples=100, centers=3, cluster_std=1, n_features=2)
     min_max = minmax(X)
     normalize(X, min_max)
 
@@ -258,12 +312,12 @@ def process_artificial_data():
 
         knn_interations.append(KNearestNeighbors(trainingSet, testSet, 2))
         dmc_interations.append(NearestCentroid(trainingSet, testSet, 2))
+        Kmeans(None, 2, dataset)
 
     print_interactions(knn_interations, dmc_interations)
     print("Finished Artificial Process")
 
     return dataset
-
 
 
 if __name__ == "__main__":
@@ -275,7 +329,7 @@ if __name__ == "__main__":
     print('-------------------')
     print('-------------------')
     print('-------------------')
-    datset_a1 = process_artificial_data()
+    dataset_a1 = process_artificial_data()
     print('-------------------')
     print('-------------------')
     print('-------------------')
@@ -284,5 +338,5 @@ if __name__ == "__main__":
     plot_surface_boundary(dataset_iris, 'dmc', 4)
     plot_surface_boundary(dataset_vertebral, 'knn', 6)
     plot_surface_boundary(dataset_vertebral, 'dmc', 6)
-    plot_surface_boundary(datset_a1, 'knn', 2)
-    plot_surface_boundary(datset_a1, 'dmc', 2)
+    plot_surface_boundary(dataset_a1, 'knn', 2)
+    plot_surface_boundary(dataset_a1, 'dmc', 2)
