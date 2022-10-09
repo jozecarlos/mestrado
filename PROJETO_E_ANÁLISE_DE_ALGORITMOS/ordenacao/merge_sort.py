@@ -21,7 +21,7 @@ def merge(elements, left, right):
         d += 1
 
 
-def merge_sort(deck_of_cards):
+def sort(deck_of_cards):
     if len(deck_of_cards) > 1:
 
         middle = len(deck_of_cards) // 2
@@ -29,14 +29,14 @@ def merge_sort(deck_of_cards):
         right = deck_of_cards[middle:]
 
         # Sort the two halves
-        merge_sort(left)
-        merge_sort(right)
+        sort(left)
+        sort(right)
         merge(deck_of_cards, left, right)
 
 
 if __name__ == "__main__":
     arr = [0, 1, 3, 5, 7, 9, 2, 4, 6, 8]
 
-    merge_sort(arr)
+    sort(arr)
     print("Sorted array is: ")
     print(arr)

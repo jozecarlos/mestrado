@@ -1,4 +1,4 @@
-def insertion_sort(deck_of_cards):
+def sort(deck_of_cards):
     print("Insertion Sort")
     print(deck_of_cards)
 
@@ -15,4 +15,4 @@ def insertion_sort(deck_of_cards):
 
 
 if __name__ == "__main__":
-    print(insertion_sort([13, 5, 2, 1, 3, 8]))
+    print(sort([13, 5, 2, 1, 3, 8]))
