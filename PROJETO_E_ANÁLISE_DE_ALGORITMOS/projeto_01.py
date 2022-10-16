@@ -50,19 +50,19 @@ if __name__ == "__main__":
         clock_merge = []
         clock_insert = []
         for n in t:
-            start = time.time()
-            merge_sort_3_way.sort(n, 1, len(n))
-            #merge_sort.Merge_Sort(n)
-            end = time.time()
-            clock_merge.append((end - start) * 1000)
-
+            n_len = len(n)
             start = time.time()
             insert_sort.sort(n)
             end = time.time()
             clock_insert.append((end - start) * 1000)
 
-        result_merge.append({len(n): np.mean(clock_merge)})
-        result_insert.append({len(n): np.mean(clock_insert)})
+            start = time.time()
+            merge_sort_3_way.sort(n, 1, n_len)
+            end = time.time()
+            clock_merge.append((end - start) * 1000)
+
+        result_merge.append({n_len: np.mean(clock_merge)})
+        result_insert.append({n_len: np.mean(clock_insert)})
 
     print(result_merge)
     print(result_insert)
