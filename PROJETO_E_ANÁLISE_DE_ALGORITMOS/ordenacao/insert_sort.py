@@ -1,7 +1,4 @@
 def sort(deck_of_cards):
-    print("Insertion Sort")
-    print(deck_of_cards)
-
     for idx in range(1, len(deck_of_cards)):
         current_card = deck_of_cards[idx]
         previous_card = idx - 1

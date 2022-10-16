@@ -52,17 +52,36 @@ if __name__ == "__main__":
         for n in t:
             start = time.time()
             merge_sort_3_way.sort(n, 1, len(n))
+            #merge_sort.Merge_Sort(n)
             end = time.time()
-            clock_merge.append((end - start) * 10 ** 3)
+            clock_merge.append((end - start) * 1000)
 
             start = time.time()
             insert_sort.sort(n)
-            #merge_sort.sort(n)
             end = time.time()
-            clock_insert.append((end - start) * 10 ** 3)
+            clock_insert.append((end - start) * 1000)
 
-        result_merge.append({len(n): np.median(clock_merge)})
-        result_insert.append({len(n): np.median(clock_insert)})
+        result_merge.append({len(n): np.mean(clock_merge)})
+        result_insert.append({len(n): np.mean(clock_insert)})
+
+    print(result_merge)
+    print(result_insert)
+
+    # array_n = [0 for i in range(1000000)]
+    # for idx in range(len(array_n)):
+    #     array_n[idx] = random.randint(-2 * 50000, 2 * 50000)
+    #
+    # start = time.time()
+    # merge_sort_3_way.sort(array_n, 1, len(array_n))
+    # end = time.time()
+    #
+    # print((end - start) * 1000)
+    #
+    # start = time.time()
+    # insert_sort.sort(array_n)
+    # end = time.time()
+    #
+    # print((end - start) * 1000)
 
     x_m = []
     x_i = []

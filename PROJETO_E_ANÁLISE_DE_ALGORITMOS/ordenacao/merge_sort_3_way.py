@@ -40,6 +40,6 @@ def sort(arr, start, end):
 
 if __name__ == "__main__":
     test = [312, 413, 3, 423, 5, 3, 342, 1, 2, 53]
-    start = 1  # Start is 1, to comprise with code errors while dividing the array
-    end = len(test)  # length of array
+    start = 1 # evitar erros durante a divisão do array
+    end = len(test)
     print(sort(test, start, end))
