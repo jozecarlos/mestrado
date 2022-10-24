@@ -89,9 +89,8 @@ def print_interactions(interations, label):
 
 
 def GaussianByesClassifier(dataset, idx_class):
-    sh_df = shuffle(dataset)
     (x_train, x_test, y_train, y_test) = \
-        train_test_split(sh_df.iloc[:, 0:idx_class].values, sh_df.iloc[:, idx_class].values, train_size=0.8)
+        train_test_split(dataset.iloc[:, 0:idx_class].values, dataset.iloc[:, idx_class].values, train_size=0.8)
     mlc = gaussian_bayes_classifier.MLClassifier()
     mlc.fit(x_train, y_train)
 
@@ -169,6 +168,7 @@ if __name__ == "__main__":
     dataset_iris = process_data('./datasets/iris_dataset.csv', 4, True,
                                 [['sepal length (cm)', 'sepal width (cm)', 'petal length (cm)', 'petal width (cm)'],
                                  'target'])
+    print(dataset_iris.head().to_latex(index=False))
     plot_surface_boundary(dataset_iris, "gaus", "Superfície de Decisão Iris")
     print('-------------------')
     print('-------------------')
@@ -176,22 +176,26 @@ if __name__ == "__main__":
     coluna_vertebral = process_data('./datasets/output.csv', 6, True,
                                     [['pelvic_incidence', 'pelvic_tilt', 'lumbar_lordosis_angle', 'sacral_slope'],
                                      'class'])
+    print(coluna_vertebral.head().to_latex(index=False))
     plot_surface_boundary(coluna_vertebral, "gaus", "Superfície de Decisão Coluna Vertebral")
     print('-------------------')
     print('-------------------')
     print('-------------------')
     dermatology = process_data('./datasets/dermatology.csv', 34, True,
                                [['erythema', 'scaling', 'definite_borders', 'itching'], 'class'])
+    print(dermatology.head().to_latex(index=False))
     plot_surface_boundary(dermatology, "gaus", "Superfície de Decisão Dermatology")
     print('-------------------')
     print('-------------------')
     print('-------------------')
     breast_cancer = process_data('./datasets/breast_cancer.csv', 5, True,
                                  [['mean_radius', 'mean_texture', 'mean_perimeter', 'mean_area'], 'diagnosis'])
+    print(breast_cancer.head().to_latex(index=False))
     plot_surface_boundary(breast_cancer, "gaus", "Superfície de Decisão Breast Cancer")
     print('-------------------')
     print('-------------------')
     print('-------------------')
     dataset = create_artificial_data(['feature 1', 'feature 2', 'class'])
+    print(dataset.head().to_latex(index=False))
     process_data(dataset, 2, True,
                  [['feature 1', 'feature 2'], 'class'])
