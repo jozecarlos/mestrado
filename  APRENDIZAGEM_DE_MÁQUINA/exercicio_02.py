@@ -1,11 +1,11 @@
 import os
 import sys
+
 import numpy as np
 import pandas as pd
 import seaborn as sns
-
 from matplotlib import pyplot as plt
-from sklearn import preprocessing, metrics, datasets
+from sklearn import preprocessing, metrics
 from sklearn.datasets import make_blobs
 from sklearn.gaussian_process import GaussianProcessClassifier
 from sklearn.model_selection import train_test_split
@@ -125,7 +125,12 @@ def process_data(dt, idx_class, lb=True, selected_colums=[]):
     else:
         df = pd.read_csv(dt)
 
-    df = shuffle(df)
+    columns = df.columns.tolist()
+    d = preprocessing.normalize(df.iloc[:, :-1])
+    scaled_df = pd.DataFrame(d, columns=columns[0:-1])
+
+    scaled_df[columns[-1]] = df[columns[-1]]
+    df = shuffle(scaled_df)
 
     if lb:
         label_encoder = preprocessing.LabelEncoder()
@@ -168,7 +173,7 @@ if __name__ == "__main__":
     dataset_iris = process_data('./datasets/iris_dataset.csv', 4, True,
                                 [['sepal length (cm)', 'sepal width (cm)', 'petal length (cm)', 'petal width (cm)'],
                                  'target'])
-    print(dataset_iris.head().to_latex(index=False))
+    print(dataset_iris.head(n=20).to_latex(index=False))
     plot_surface_boundary(dataset_iris, "gaus", "Superfície de Decisão Iris")
     print('-------------------')
     print('-------------------')
@@ -176,7 +181,7 @@ if __name__ == "__main__":
     coluna_vertebral = process_data('./datasets/output.csv', 6, True,
                                     [['pelvic_incidence', 'pelvic_tilt', 'lumbar_lordosis_angle', 'sacral_slope'],
                                      'class'])
-    print(coluna_vertebral.head().to_latex(index=False))
+    print(coluna_vertebral.head(n=20).to_latex(index=False))
     plot_surface_boundary(coluna_vertebral, "gaus", "Superfície de Decisão Coluna Vertebral")
     print('-------------------')
     print('-------------------')
