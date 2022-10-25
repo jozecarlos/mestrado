@@ -126,6 +126,11 @@ def process_data(dt, idx_class, lb=True, selected_colums=[]):
         df = pd.read_csv(dt)
 
     columns = df.columns.tolist()
+
+    for column in df:
+        if df[column].isnull().any():
+            df[column].fillna(df[column].mean(), inplace = True)
+
     d = preprocessing.normalize(df.iloc[:, :-1])
     scaled_df = pd.DataFrame(d, columns=columns[0:-1])
 
@@ -188,19 +193,21 @@ if __name__ == "__main__":
     print('-------------------')
     dermatology = process_data('./datasets/dermatology.csv', 34, True,
                                [['erythema', 'scaling', 'definite_borders', 'itching'], 'class'])
-    print(dermatology.head().to_latex(index=False))
+    print(dermatology.iloc[:,:4].head(n=20).to_latex(index=False))
     plot_surface_boundary(dermatology, "gaus", "Superfície de Decisão Dermatology")
     print('-------------------')
     print('-------------------')
     print('-------------------')
     breast_cancer = process_data('./datasets/breast_cancer.csv', 5, True,
                                  [['mean_radius', 'mean_texture', 'mean_perimeter', 'mean_area'], 'diagnosis'])
-    print(breast_cancer.head().to_latex(index=False))
+    print(breast_cancer.head(n=20).to_latex(index=False))
     plot_surface_boundary(breast_cancer, "gaus", "Superfície de Decisão Breast Cancer")
     print('-------------------')
     print('-------------------')
     print('-------------------')
     dataset = create_artificial_data(['feature 1', 'feature 2', 'class'])
     print(dataset.head().to_latex(index=False))
-    process_data(dataset, 2, True,
+    dataset = process_data(dataset, 2, True,
                  [['feature 1', 'feature 2'], 'class'])
+    print(dataset.head(n=20).to_latex(index=False))
+    plot_surface_boundary(dataset, "gaus", "Superfície de Decisão Artificial 01")

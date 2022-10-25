@@ -38,7 +38,10 @@ class MLClassifier:
                 # if at least one eigenvalue is <= 0 show warning
                 print(f'Warning! Covariance matrix for label {cls_x} is not positive definite!\n')
 
-            covariance_matrix_inverse = np.linalg.inv(covariance_matrix)
+            if np.linalg.det(covariance_matrix) != 0.0:
+                covariance_matrix_inverse = np.linalg.inv(covariance_matrix)
+            else:
+                covariance_matrix_inverse = np.linalg.pinv(covariance_matrix)
 
             scalar = 1 / np.sqrt(((2 * np.pi) ** self.d) * np.linalg.det(covariance_matrix))
 
