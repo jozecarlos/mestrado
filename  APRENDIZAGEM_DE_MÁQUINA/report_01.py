@@ -19,6 +19,7 @@ from sklearn.metrics import mean_absolute_error, ConfusionMatrixDisplay
 from sklearn.metrics import mean_squared_error
 from sklearn.mixture import BayesianGaussianMixture
 from sklearn.model_selection import train_test_split
+from sklearn.naive_bayes import GaussianNB
 from sklearn.neighbors import KNeighborsRegressor
 from sklearn.preprocessing import StandardScaler
 from datasets import load_banana, load_ripley, load_two_moon
@@ -112,7 +113,7 @@ def item_b():
     y = normalized_df["class"].values
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=12)
 
-    clf = LinearDiscriminantAnalysis()
+    clf = GaussianNB()
     clf.fit(X_train, y_train)
 
     # Plotando a Matrix de confusão
@@ -135,7 +136,7 @@ def item_b_3():
         y = dataset.target
         X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=12)
 
-        clf = LinearDiscriminantAnalysis()
+        clf = GaussianNB()
         clf.fit(X_train, y_train)
 
         # Plotando a Matrix de confusão
