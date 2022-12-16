@@ -218,6 +218,34 @@ def shuffle(x_data, y_data):
     y = np.array(y)
     return X, y
 
+def compute_std_mean(model_name_list):
+    for model_name in model_name_list:
+        metrics_csv = pd.read_csv(outPathC + os.sep + 'metrics' + os.sep + model_name + '_results.csv', sep=",")
+
+        means = metrics_csv.groupby(['classifier']).mean()
+        stds = metrics_csv.groupby(['classifier']).std()
+
+        classifiers = means.index.get_level_values(0)
+        classifiers = np.resize(np.asarray(classifiers), (1, len(classifiers_name_list)))  # 1 and classifiers
+        classifiers = classifiers.T
+
+        means = np.asarray(means)
+        means = means[:, 1:]
+        stds = np.asarray(stds)
+        stds = stds[:, 1:]
+
+        new_csv = np.concatenate((classifiers, means), axis=1)
+        new_csv = np.concatenate((new_csv, stds), axis=1)
+
+        cab = ['classifier', 'accuracy_mean', 'balanced_accuracy_mean', 'precision_mean', 'sensitivity_mean',
+               'specificity_mean', 'f1_score_mean', 'process_time_mean', 'accuracy_std', 'balanced_accuracy_std',
+               'precision_std', 'sensitivity_std', 'specificity_std', 'f1_score_std', 'process_time_std']
+
+        new_csv = pd.DataFrame(new_csv, columns=cab).to_csv(
+            outPathC + os.sep + 'metrics' + os.sep + model_name + '_mean_std.csv',
+            sep=',', index=False)
+
+        pd.read_csv(outPathC + os.sep + 'metrics' + os.sep + model_name + '_mean_std.csv', sep=',')
 
 def plot_result(model_name_list, classifiers_name_list):
     for model_name in model_name_list:
@@ -504,6 +532,7 @@ if __name__ == "__main__":
     cv = 3  # Random Search K-Fold
 
     process_data(model_name_list, process_time)
+    compute_std_mean(model_name_list)
     plot_result(model_name_list, classifiers_name_list)
 
     print('\n\nDone')
