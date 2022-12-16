@@ -12,29 +12,16 @@ from IPython.display import clear_output
 from PIL import Image
 from imblearn.metrics import sensitivity_score
 from imblearn.metrics import specificity_score
-from keras.applications.densenet import DenseNet121
-from keras.applications.densenet import DenseNet169
 from keras.applications.densenet import DenseNet201
 from keras.applications.densenet import preprocess_input as ppi_densenet
-from keras.applications.inception_resnet_v2 import InceptionResNetV2
-from keras.applications.inception_resnet_v2 import preprocess_input as ppi_inceptionresnet_v2
-from keras.applications.inception_v3 import InceptionV3
-from keras.applications.inception_v3 import preprocess_input as ppi_inception_v3
 from keras.applications.mobilenet import MobileNet
-from keras.applications.mobilenet import preprocess_input as ppi_mobilenet
-from keras.applications.nasnet import NASNetLarge
-from keras.applications.nasnet import NASNetMobile
-from keras.applications.nasnet import preprocess_input as ppi_nasnet
-from keras.applications.resnet import ResNet50
-from keras.applications.resnet import preprocess_input as ppi_resnet50
-from keras.applications.vgg16 import VGG16
-from keras.applications.vgg16 import preprocess_input as ppi_vgg16
-from keras.applications.vgg19 import VGG19
-from keras.applications.vgg19 import preprocess_input as ppi_vgg19
 from keras.applications.xception import Xception
 from keras.applications.xception import preprocess_input as ppi_xception
-from scipy.stats import randint as sp_randint
+from keras.applications.mobilenet import preprocess_input as ppi_mobilenet
+from keras.applications.resnet import ResNet50
+from keras.applications.resnet import preprocess_input as ppi_resnet50
 from sklearn import svm
+from scipy.stats import randint as sp_randint
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import *
 from sklearn.model_selection import RandomizedSearchCV
@@ -47,9 +34,10 @@ current_milli_time = lambda: int(round(time.time() * 1000))
 
 # Build the CNN model, without the last fully-connected layers
 def build_model(model_name, pooltype='max'):
-
     model = MobileNet(weights='imagenet', pooling=pooltype, input_shape=(224, 224, 3), include_top=False)
 
+    if 'Xception' == model_name:
+        model = Xception(weights='imagenet', pooling=pooltype, include_top=False)
     if 'ResNet50' == model_name:
         model = ResNet50(weights='imagenet', pooling=pooltype, include_top=False)
     if 'DenseNet201' == model_name:
@@ -62,6 +50,8 @@ def extract_deep_features(file_id, model, model_name, target_size, log=False):
     x = load_img(file_id, target_size)
     x = np.expand_dims(x, axis=0)
 
+    if model_name == 'Xception':
+        x = ppi_xception(x)
     if model_name == 'ResNet50':
         x = ppi_resnet50(x)
     if model_name == 'MobileNet':
@@ -142,7 +132,6 @@ def deep_extractor(model_name, classes_list, output_fmt=['npy'], srcPath='./data
                     data_df = pd.concat([image_name, data_df], axis=1)
                     data_df_csv = pd.concat([data_df_csv, data_df], axis=0)
 
-
                 # The first column of each line is the image id, the last column is the class of image
                 features = features.reshape(-1)
                 features = np.hstack((features, fileIdx))
@@ -150,6 +139,15 @@ def deep_extractor(model_name, classes_list, output_fmt=['npy'], srcPath='./data
                     features = np.hstack((int(id_img), features))
                 data.append(features)
 
+        # Saves a txt file w/ deep features
+    if 'txt' in output_fmt:
+        np.savetxt(outPath + os.sep + model_name + '.txt', data, fmt="%.8f")
+
+        # Saves a npy file w/ deep features
+    if 'npy' in output_fmt:
+        np.save(outPath + os.sep + model_name + '.npy', data)
+
+        # Saves a csv file w/ deep features and w/ images identifiers
     if 'csv' in output_fmt:
         data_df_csv.to_csv(outPath + os.sep + model_name + '.csv')
 
@@ -218,6 +216,7 @@ def shuffle(x_data, y_data):
     y = np.array(y)
     return X, y
 
+
 def compute_std_mean(model_name_list):
     for model_name in model_name_list:
         metrics_csv = pd.read_csv(outPathC + os.sep + 'metrics' + os.sep + model_name + '_results.csv', sep=",")
@@ -246,6 +245,7 @@ def compute_std_mean(model_name_list):
             sep=',', index=False)
 
         pd.read_csv(outPathC + os.sep + 'metrics' + os.sep + model_name + '_mean_std.csv', sep=',')
+
 
 def plot_result(model_name_list, classifiers_name_list):
     for model_name in model_name_list:
@@ -298,7 +298,7 @@ def plot_result(model_name_list, classifiers_name_list):
         ax.set_ylabel('%')
         ax.set_yticks(np.arange(0, 110, 10))
         ax.set_xticks(x_pos)
-        ax.set_xticklabels(['KNN', 'SVM Linear', 'SVM RBF'])
+       #ax.set_xticklabels(['KNN', 'SVM Linear', 'SVM RBF'])
         ax.set_title('Resultados da Classificação: ' + model_name)
         ax.yaxis.grid(True)
         ax.legend()
@@ -417,6 +417,7 @@ def create_folder_structure():
     if not os.path.exists('./results/classification/rounds'):
         os.makedirs('./results/classification/rounds')
 
+
 def open_txt(path):
     lines = []
     file = open(path)
@@ -444,7 +445,7 @@ def create_images_from_txt():
 
 
 if __name__ == "__main__":
-    #create_images_from_txt()
+    # create_images_from_txt()
 
     ImagesID = False
     srcPath = './images/ocr_car'
@@ -486,18 +487,19 @@ if __name__ == "__main__":
             313 - (313 * 20 // 100),
             297 - (297 * 20 // 100),
         ]}
-    model_name_list = ['ResNet50', 'MobileNet', 'DenseNet201']
-    classifiers_name_list = ['KNN', 'SVM_Linear', 'SVM_RBF']
+    output_fmt = ['txt', 'npy', 'csv']
+    model_name_list = ['ResNet50', 'MobileNet', 'Xception']
+    classifiers_name_list = ['Nearest_Neighbors', 'SVM_Linear']
     metrics_name_list = ['accuracy', 'balanced_accuracy', 'precision', 'sensitivity', 'specificity', 'f1_score']
     classification_rounds = 10
     outPathF = './results/features'
     outPathC = './results/classification'
     create_folder_structure()
 
-    ## For each deep model
-    for model_name in model_name_list:
-        process_time = deep_extractor(model_name, classes, ['csv'], srcPath, outPathF)
-        print('Load process: Complete', process_time)
+    # For each deep model
+    # for model_name in model_name_list:
+    #    process_time = deep_extractor(model_name, classes, output_fmt, srcPath, outPathF)
+    #    print('Load process: Complete', process_time)
 
     print('\n\nDone')
 
@@ -512,17 +514,32 @@ if __name__ == "__main__":
                          ])
 
     # Specify parameters and distributions to classifiers
-    param_dist_list = np.array([
+    param_dist_list = np.array([  # Bayes
+        None,
+        # MLP
+        {"hidden_layer_sizes": list(np.arange(2, 1001))},
         # KNN
         {"n_neighbors": [1, 3, 5, 7, 9, 11]},
+        # Random Forest
+        {"n_estimators": [3000],
+         "max_depth": [6, None],
+         "max_features": sp_randint(1, 11),
+         "min_samples_split": sp_randint(2, 11),
+         "min_samples_leaf": sp_randint(1, 11),
+         "bootstrap": [True, False],
+         "criterion": ["gini", "entropy"]},
         # SVM Linear
         {'kernel': ['linear'], 'C': [2 ** i for i in range(-5, 15)]},
+        # SVM Polynomial
+        {'kernel': ['poly'], 'degree': [3, 5, 7, 9], 'C': [2 ** i for i in range(-5, 15)]},
         # SVM RBF
         {'kernel': ['rbf'], 'gamma': [2 ** i for i in range(-15, 3)],
          'C': [2 ** i for i in range(-5, 15)]}
     ])
 
-    clf_numbers = {'Nearest_Neighbors': 2, 'SVM_Linear': 4, 'SVM_RBF': 6}
+    # Numbers idx of each classifier
+    clf_numbers = {'Bayes': 0, 'MLP': 1, 'Nearest_Neighbors': 2, 'Random_Forest': 3, 'SVM_Linear': 4,
+                   'SVM_Polynomial': 5, 'SVM_RBF': 6}
 
     idx_clf = np.array([clf_numbers[i] for i in classifiers_name_list])
     clf_list = clf_list[idx_clf]
@@ -531,8 +548,8 @@ if __name__ == "__main__":
     n_iter_search_list = n_iter_search_list[idx_clf]
     cv = 3  # Random Search K-Fold
 
-    process_data(model_name_list, process_time)
-    compute_std_mean(model_name_list)
+    # process_data(model_name_list, process_time)
+    #compute_std_mean(model_name_list)
     plot_result(model_name_list, classifiers_name_list)
 
     print('\n\nDone')
