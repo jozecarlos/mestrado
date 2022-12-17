@@ -200,7 +200,7 @@ if __name__ == "__main__":
         for prices in t:
             n_len = len(prices)
             start = time.time()
-            naive_cut_rod_recursive(prices, n_len, [], 1)
+            greedy_strategy_rod_cut(prices, n_len, 1)
             end = time.time()
             clock_interative.append((end - start) * 1000)
 
